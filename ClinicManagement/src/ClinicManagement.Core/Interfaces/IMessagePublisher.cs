@@ -1,9 +1,10 @@
-using PluralsightDdd.SharedKernel.Interfaces;
+﻿using System.Threading.Tasks;
+using PluralsightDdd.SharedKernel;
 
 namespace ClinicManagement.Core.Interfaces
 {
   public interface IMessagePublisher
   {
-    void Publish(IApplicationEvent applicationEvent);
+    Task Publish(object applicationEvent);
   }
 }

@@ -14,7 +14,7 @@ using Xunit.Abstractions;
 namespace FunctionalTests.AppointmentEndpoints
 {
   [Collection("Sequential")]
-  public class Create : IClassFixture<CustomWebApplicationFactory<Startup>>
+  public class Create : IClassFixture<CustomWebApplicationFactory<Program>>
   {
     private readonly HttpClient _client;
     private readonly ITestOutputHelper _outputHelper;
@@ -24,7 +24,7 @@ namespace FunctionalTests.AppointmentEndpoints
     private int _testRoomId = 1;
     private int _testDoctorId = 1;
 
-    public Create(CustomWebApplicationFactory<Startup> factory, ITestOutputHelper outputHelper)
+    public Create(CustomWebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
     {
       _client = factory.CreateClient();
       _outputHelper = outputHelper;
@@ -34,13 +34,13 @@ namespace FunctionalTests.AppointmentEndpoints
     public async Task CreatesANewAppointment()
     {
       // get schedule
-      var listResult = await _client.GetAndDeserialize<ListScheduleResponse>(ListScheduleRequest.Route, _outputHelper);
+      var listResult = await _client.GetAndDeserializeAsync<ListScheduleResponse>(ListScheduleRequest.Route, _outputHelper);
       var schedule = listResult.Schedules.First();
       string scheduleId = schedule.Id.ToString();
 
       string listRoute = ListAppointmentRequest.Route.Replace("{ScheduleId}", scheduleId);
 
-      var result = await _client.GetAndDeserialize<ListAppointmentResponse>(listRoute, _outputHelper);
+      var result = await _client.GetAndDeserializeAsync<ListAppointmentResponse>(listRoute, _outputHelper);
 
       var jsonContent = GetValidNewAppointmentJson(schedule.Id);
 

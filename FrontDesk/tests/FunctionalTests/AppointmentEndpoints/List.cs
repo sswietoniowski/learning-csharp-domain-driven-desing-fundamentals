@@ -4,19 +4,18 @@ using System.Threading.Tasks;
 using Ardalis.HttpClientTestExtensions;
 using BlazorShared.Models.Appointment;
 using BlazorShared.Models.Schedule;
-using FrontDesk.Api;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace FunctionalTests.AppointmentEndpoints
 {
   [Collection("Sequential")]
-  public class List : IClassFixture<CustomWebApplicationFactory<Startup>>
+  public class List : IClassFixture<CustomWebApplicationFactory<Program>>
   {
     private readonly HttpClient _client;
     private readonly ITestOutputHelper _outputHelper;
 
-    public List(CustomWebApplicationFactory<Startup> factory, ITestOutputHelper outputHelper)
+    public List(CustomWebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
     {
       _client = factory.CreateClient();
       _outputHelper = outputHelper;
@@ -26,7 +25,7 @@ namespace FunctionalTests.AppointmentEndpoints
     public async Task ReturnsAppointmentsIncludingOneForDarwin()
     {
       // get schedule
-      var listResult = await _client.GetAndDeserialize<ListScheduleResponse>(ListScheduleRequest.Route, _outputHelper);
+      var listResult = await _client.GetAndDeserializeAsync<ListScheduleResponse>(ListScheduleRequest.Route, _outputHelper);
       Assert.True(listResult.Schedules.Count == 1);
       var schedule = listResult.Schedules.First();
       _outputHelper.WriteLine($"Schedule: {schedule}");
@@ -35,7 +34,7 @@ namespace FunctionalTests.AppointmentEndpoints
 
       _outputHelper.WriteLine($"Route: {route}");
 
-      var result = await _client.GetAndDeserialize<ListAppointmentResponse>(route, _outputHelper);
+      var result = await _client.GetAndDeserializeAsync<ListAppointmentResponse>(route, _outputHelper);
 
       var darwinAppt = result.Appointments.First(a => a.Title.Contains("Darwin"));
       _outputHelper.WriteLine(darwinAppt.ToString());

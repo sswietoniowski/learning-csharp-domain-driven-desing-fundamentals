@@ -1,20 +1,18 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-using Ardalis.ApiEndpoints;
-using AutoMapper;
 using BlazorShared.Models.Client;
-using ClinicManagement.Api.ApplicationEvents;
+using ClinicManagement.Contracts;
 using ClinicManagement.Core.Aggregates;
 using ClinicManagement.Core.Interfaces;
-using Microsoft.AspNetCore.Mvc;
+using FastEndpoints;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using PluralsightDdd.SharedKernel.Interfaces;
-using Swashbuckle.AspNetCore.Annotations;
+using IMapper = AutoMapper.IMapper;
 
 namespace ClinicManagement.Api.ClientEndpoints
 {
-  public class Update : BaseAsyncEndpoint
-    .WithRequest<UpdateClientRequest>
-    .WithResponse<UpdateClientResponse>
+  public class Update : Endpoint<UpdateClientRequest, UpdateClientResponse>
   {
     private readonly IRepository<Client> _repository;
     private readonly IMapper _mapper;
@@ -29,14 +27,18 @@ namespace ClinicManagement.Api.ClientEndpoints
       _messagePublisher = messagePublisher;
     }
 
-    [HttpPut("api/clients")]
-    [SwaggerOperation(
-        Summary = "Updates a Client",
-        Description = "Updates a Client",
-        OperationId = "clients.update",
-        Tags = new[] { "ClientEndpoints" })
-    ]
-    public override async Task<ActionResult<UpdateClientResponse>> HandleAsync(UpdateClientRequest request, CancellationToken cancellationToken)
+    public override void Configure()
+    {
+      Put("api/clients");
+      AllowAnonymous();
+      Description(d =>
+          d.WithSummary("Updates a Client")
+           .WithDescription("Updates a Client")
+           .WithName("clients.update")
+           .WithTags("ClientEndpoints"));
+    }
+
+    public override async Task<UpdateClientResponse> ExecuteAsync(UpdateClientRequest request, CancellationToken cancellationToken)
     {
       var response = new UpdateClientResponse(request.CorrelationId);
 
@@ -49,11 +51,10 @@ namespace ClinicManagement.Api.ClientEndpoints
       // Note: These messages could be triggered from the Repository or DbContext events
       // In the DbContext you could look for entities marked with an interface saying they needed
       // to be synchronized via cross-domain events and publish the appropriate message.
-      var appEvent = new NamedEntityUpdatedEvent(_mapper.Map<NamedEntity>(toUpdate), "Client-Updated");
-      _messagePublisher.Publish(appEvent);
+      var appEvent = new ClientUpdatedIntegrationEvent(toUpdate.Id, toUpdate.FullName);
+      await _messagePublisher.Publish(appEvent);
 
-
-      return Ok(response);
+      return response;
     }
   }
 }

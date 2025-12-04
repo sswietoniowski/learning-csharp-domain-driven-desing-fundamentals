@@ -3,19 +3,18 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Ardalis.HttpClientTestExtensions;
 using BlazorShared.Models.Client;
-using FrontDesk.Api;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace FunctionalTests.ClientEndpoints
 {
   [Collection("Sequential")]
-  public class List : IClassFixture<CustomWebApplicationFactory<Startup>>
+  public class List : IClassFixture<CustomWebApplicationFactory<Program>>
   {
     private readonly HttpClient _client;
     private readonly ITestOutputHelper _outputHelper;
 
-    public List(CustomWebApplicationFactory<Startup> factory,
+    public List(CustomWebApplicationFactory<Program> factory,
       ITestOutputHelper outputHelper)
     {
       _client = factory.CreateClient();
@@ -25,7 +24,7 @@ namespace FunctionalTests.ClientEndpoints
     [Fact]
     public async Task ReturnsManyClients()
     {
-      var result = await _client.GetAndDeserialize<ListClientResponse>(ListClientRequest.Route, _outputHelper);
+      var result = await _client.GetAndDeserializeAsync<ListClientResponse>(ListClientRequest.Route, _outputHelper);
 
       Assert.True(result.Clients.Count > 10);
       Assert.Contains(result.Clients, x => x.FullName == "Steve Smith");
@@ -34,7 +33,7 @@ namespace FunctionalTests.ClientEndpoints
     [Fact]
     public async Task IncludesPatientIds()
     {
-      var result = await _client.GetAndDeserialize<ListClientResponse>(ListClientRequest.Route, _outputHelper);
+      var result = await _client.GetAndDeserializeAsync<ListClientResponse>(ListClientRequest.Route, _outputHelper);
 
       Assert.NotEmpty(result.Clients.First().Patients);
     }
